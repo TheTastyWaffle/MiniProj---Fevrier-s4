@@ -1,87 +1,86 @@
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
+#include <unistd.h>
 #include "dungeon.h"
 #include "extract.h"
 
 void cost (t_dungeon dg, char *line)
 {
-	int             test=0, *lst, i;
-	float           health=0;
-	char            *chem = NULL;
-	chem = malloc(100);
+	int	i, curr=0;
+	int 	*lst;
+	float	health=0;
+	char	*path = NULL;
+	path = malloc(100);
 	lst = malloc (sizeof(int)*100);
-	sscanf(line, "COST %f [%s]\n",&health, chem);
-
-	for (i=0;1 < sscanf (chem, "%d;%s",&test, chem); i++)
-		lst[i] = test;
-
-	sscanf (chem, "%d;%s",&test, chem);
-	lst[i] = test;
-	lst[i+1] = 0;
-	printf("%d\n", lst[i-1]);  
+	sscanf(line, "COST %f [%s]\n",&health, path);
+	for (i=0;1 < sscanf (path, "%d;%s",&curr, path); i++)
+		lst[i] = curr;
+	sscanf (path, "%d;%s",&curr, path);
+	lst[i] = curr;
+	lst[i+1] = 0;  
 	i = create_path(dg, lst, &health);
 	if (0 < i)
-		printf ("%g - %d\n", health, i);
+		printf ("(%g,%d)\n", health, i);
 	else if ( 0 == i)
 		printf ("NP\n");
 	else
 		printf ("DEAD\n");
 	free (lst);
-	free (chem); 
+	free (path); 
 }
 
-void display_path(int *pere, int src, int dest, int *cpt)
+void display_path(int *f, int src, int dst, int *n)
 {
-	if (src != dest)
+	if (src != dst)
 	{
-		(*cpt)++;
-		display_path(pere, src, pere[dest], cpt);
-		(*cpt)--;
+		(*n)++;
+		display_path(f+1, src, f[dst], n);
+		(*n)--;
 	}
-	if (*cpt > 0)
-		printf("%d;", dest);
+	if (*n > 0)
+		printf("%d;", dst);
 	else
-		printf("%d", dest);
+		printf("%d", dst);
 }
 
-void path(t_dungeon dg, char *phrase)
+void path(t_dungeon dg, char *line)
 {
-	int             deb=0, fin=0;
-	int             *pere, cpt = 0;
-	float           vies=0;
-	float           *dist;
-	sscanf(phrase, "PATH %f %d %d",&vies, &deb, &fin);
-	pere = malloc (sizeof(int)*dg->order);
-	dist = malloc (sizeof(float)*dg->order);
-	dijkstra(dg, deb, pere, dist);
+	int             src=0, dst=0;
+	int             *f, n=0;
+	float           health=0;
+	float           *curr;
+	sscanf(line, "PATH %f %d %d",&health, &src, &dst);
+	f = malloc (sizeof(int)*dg->order);
+	curr = malloc (sizeof(float)*dg->order);
+	dijkstra(dg, src, f, curr);
 	printf("[");
-	display_path(pere, deb, fin, &cpt);
+	display_path(f, src, dst, &n);
 	printf("]\n");
-	free (pere);
-	free (dist);
+	free (f);
+	free (curr);
 }
 
-int main(int argc, char **argv)
+int main (int argc, char **argv)
 {
 	t_dungeon	dg = NULL;
 	char		*curr;
-
 	if (argc < 1)
 		return -1;
-	
 	dg = dungeon_from_file(argv[1]);
 	curr = malloc (100);
 	while (fgets(curr,100, stdin))
 	{
-		if (curr[0] == 'C')
+		if (curr[0] == 'C' && curr[1] == 'O' && curr[2] == 'S' && curr[3] == 'T')
 			cost(dg, curr);
-		else if (curr[0] == 'P')
+		else if (curr[0] == 'P' && curr[1] == 'A' && curr[2] == 'T' && curr[3] == 'H')
 			path(dg, curr);
 		else
-			break;
+		{
+			printf("error in arguments\nTry PATH int [int;...;int] or COST int int\n");
+			return 1;
+		}
 	}
-	free (path);
+	free(curr);
 	free (dg);
 	return 0;
 }

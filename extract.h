@@ -1,6 +1,5 @@
-#ifndef EXTRACT_H
-#define EXTRACT_H
-
+#ifndef EXTRACT
+#define EXTRACT
 #include "dungeon.h"
 
 int open_for_reading(char*);
